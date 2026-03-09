@@ -1,0 +1,130 @@
+name: 'Unpinched — PinchTab Detector'
+description: 'Scan your CI runner for PinchTab deployment and unauthenticated Chrome DevTools Protocol exposure. Fail builds when agentic browser hijacking artifacts are detected.'
+author: 'Helixar Labs'
+
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  version:
+    description: 'Release version to download (e.g. v0.1.0). Defaults to latest.'
+    required: false
+    default: 'latest'
+  fail-on-findings:
+    description: 'Fail the workflow step if any PinchTab indicators are found (risk level != NONE).'
+    required: false
+    default: 'true'
+  timeout:
+    description: 'HTTP request timeout in seconds for port and CDP probes.'
+    required: false
+    default: '3'
+  ports:
+    description: 'Comma-separated additional ports to scan beyond defaults.'
+    required: false
+    default: ''
+
+outputs:
+  risk-level:
+    description: 'Overall risk level: NONE | LOW | MEDIUM | HIGH | CRITICAL'
+    value: ${{ steps.scan.outputs.risk-level }}
+  findings:
+    description: 'Full scan report as a JSON string.'
+    value: ${{ steps.scan.outputs.findings }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download pinchtab-detector
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+
+        # Resolve version
+        VERSION="$INPUT_VERSION"
+        if [ "$VERSION" = "latest" ]; then
+          VERSION=$(curl -fsSL https://api.github.com/repos/Helixar-AI/Unpinched/releases/latest \
+            | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+        fi
+        echo "Using pinchtab-detector $VERSION"
+
+        # Detect platform
+        case "$RUNNER_OS" in
+          Linux)   OS="linux" ;;
+          macOS)   OS="darwin" ;;
+          Windows) OS="windows" ;;
+          *)       OS=$(uname -s | tr '[:upper:]' '[:lower:]') ;;
+        esac
+
+        ARCH=$(uname -m)
+        case "$ARCH" in
+          x86_64)         ARCH="amd64" ;;
+          aarch64|arm64)  ARCH="arm64" ;;
+        esac
+
+        INSTALL_DIR="$RUNNER_TEMP/pinchtab-detector"
+        mkdir -p "$INSTALL_DIR"
+
+        if [ "$OS" = "windows" ]; then
+          FILENAME="pinchtab-detector_${OS}_${ARCH}.zip"
+          URL="https://github.com/Helixar-AI/Unpinched/releases/download/${VERSION}/${FILENAME}"
+          curl -fsSL "$URL" -o "$INSTALL_DIR/pinchtab-detector.zip"
+          unzip -q "$INSTALL_DIR/pinchtab-detector.zip" -d "$INSTALL_DIR"
+        else
+          FILENAME="pinchtab-detector_${OS}_${ARCH}.tar.gz"
+          URL="https://github.com/Helixar-AI/Unpinched/releases/download/${VERSION}/${FILENAME}"
+          curl -fsSL "$URL" | tar xz -C "$INSTALL_DIR"
+        fi
+
+        chmod +x "$INSTALL_DIR/pinchtab-detector" 2>/dev/null || true
+        echo "$INSTALL_DIR" >> "$GITHUB_PATH"
+
+    - name: Run scan
+      id: scan
+      shell: bash
+      env:
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_PORTS: ${{ inputs.ports }}
+        INPUT_FAIL: ${{ inputs.fail-on-findings }}
+      run: |
+        ARGS="--json"
+        [ -n "$INPUT_TIMEOUT" ] && ARGS="$ARGS --timeout $INPUT_TIMEOUT"
+        [ -n "$INPUT_PORTS"   ] && ARGS="$ARGS --ports $INPUT_PORTS"
+
+        # Run scan; capture output regardless of exit code
+        FINDINGS=$(pinchtab-detector scan $ARGS 2>/dev/null) || true
+        RISK=$(echo "$FINDINGS" | jq -r '.risk_level // "UNKNOWN"')
+
+        # Set outputs
+        echo "risk-level=$RISK" >> "$GITHUB_OUTPUT"
+        {
+          echo "findings<<__EOF__"
+          echo "$FINDINGS"
+          echo "__EOF__"
+        } >> "$GITHUB_OUTPUT"
+
+        # Job summary
+        echo "## pinchtab-detector scan" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        case "$RISK" in
+          NONE)     echo "✅ **Risk Level: NONE** — No PinchTab indicators found." >> "$GITHUB_STEP_SUMMARY" ;;
+          LOW)      echo "🟡 **Risk Level: LOW** — Filesystem artifact detected, no active service." >> "$GITHUB_STEP_SUMMARY" ;;
+          MEDIUM)   echo "🟠 **Risk Level: MEDIUM** — Suspicious port or unauthenticated CDP detected." >> "$GITHUB_STEP_SUMMARY" ;;
+          HIGH)     echo "🔴 **Risk Level: HIGH** — Strong PinchTab indicators found." >> "$GITHUB_STEP_SUMMARY" ;;
+          CRITICAL) echo "🚨 **Risk Level: CRITICAL** — Active PinchTab API with CDP bridge open." >> "$GITHUB_STEP_SUMMARY" ;;
+        esac
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "<details><summary>Full JSON report</summary>" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo '```json' >> "$GITHUB_STEP_SUMMARY"
+        echo "$FINDINGS" >> "$GITHUB_STEP_SUMMARY"
+        echo '```' >> "$GITHUB_STEP_SUMMARY"
+        echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+
+        # Fail if requested and findings exist
+        if [ "$INPUT_FAIL" = "true" ] && [ "$RISK" != "NONE" ]; then
+          echo "::error::PinchTab indicators detected — Risk Level: $RISK. See job summary for details."
+          exit 1
+        fi

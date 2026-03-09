@@ -9,6 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![By Helixar Labs](https://img.shields.io/badge/by-Helixar%20Labs-6C63FF?style=flat-square)](https://helixar.ai/about/labs/)
 [![Release](https://img.shields.io/github/v/release/Helixar-AI/Unpinched?style=flat-square)](https://github.com/Helixar-AI/Unpinched/releases)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Unpinched-blue?style=flat-square&logo=github)](https://github.com/marketplace/actions/unpinched-pinchtab-detector)
 
 </div>
 
@@ -59,7 +60,90 @@ Your EDR won't catch it. Your WAF won't see it. This tool will.
 
 ---
 
-## Install
+## Use as a GitHub Action
+
+Drop `Helixar-AI/Unpinched` into any workflow to scan your runner environment before deploying AI workloads or running agentic pipelines.
+
+### Quickstart
+
+```yaml
+- name: Scan for PinchTab artifacts
+  uses: Helixar-AI/Unpinched@v0.1.0
+```
+
+### Fail the build on any finding
+
+```yaml
+- name: PinchTab security gate
+  uses: Helixar-AI/Unpinched@v0.1.0
+  with:
+    fail-on-findings: 'true'   # default — blocks deployment if risk != NONE
+```
+
+### Read outputs in subsequent steps
+
+```yaml
+- name: Scan
+  id: pinchtab
+  uses: Helixar-AI/Unpinched@v0.1.0
+  with:
+    fail-on-findings: 'false'
+
+- name: Block on HIGH or CRITICAL only
+  if: contains(fromJSON('["HIGH","CRITICAL"]'), steps.pinchtab.outputs.risk-level)
+  run: |
+    echo "Blocking deployment — risk level: ${{ steps.pinchtab.outputs.risk-level }}"
+    exit 1
+```
+
+### Full pre-deploy security gate example
+
+```yaml
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  security-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for PinchTab / CDP bridge exposure
+        uses: Helixar-AI/Unpinched@v0.1.0
+        with:
+          fail-on-findings: 'true'
+          timeout: '5'
+
+  deploy:
+    needs: security-gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Safe to deploy"
+```
+
+### Inputs
+
+| Input | Default | Description |
+|---|---|---|
+| `version` | `latest` | Specific release version to use (e.g. `v0.1.0`) |
+| `fail-on-findings` | `true` | Fail the step if risk level is anything other than `NONE` |
+| `timeout` | `3` | HTTP probe timeout in seconds |
+| `ports` | `` | Extra comma-separated ports to scan |
+
+### Outputs
+
+| Output | Description |
+|---|---|
+| `risk-level` | `NONE` \| `LOW` \| `MEDIUM` \| `HIGH` \| `CRITICAL` |
+| `findings` | Full scan report as a JSON string |
+
+Results are also written to the **job summary** with a collapsible JSON report.
+
+---
+
+## Install (CLI)
 
 ### Homebrew (macOS / Linux)
 
