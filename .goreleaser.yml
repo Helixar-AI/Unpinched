@@ -21,14 +21,14 @@ builds:
       - goos: windows
         goarch: arm64
     ldflags:
-      - -s -w -X main.version={{.Version}}
+      - -s -w
 
 archives:
   - id: default
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 checksum:
   name_template: "checksums.txt"
@@ -45,8 +45,8 @@ changelog:
 
 release:
   github:
-    owner: helixar-ai
-    name: pinchtab-detector
+    owner: Helixar-AI
+    name: Unpinched
   name_template: "{{.ProjectName}} {{.Version}}"
   header: |
     ## pinchtab-detector {{.Version}}
