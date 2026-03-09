@@ -1,6 +1,6 @@
 <div align="center">
 
-# Unpinched — `pinchtab-detector`
+# Unpinched - `pinchtab-detector`
 
 **Point-in-time scanner for PinchTab deployment and agentic browser bridge artifacts.**
 
@@ -16,9 +16,9 @@
 
 ## What is this?
 
-`pinchtab-detector` is a single-binary CLI tool that scans your local machine for signs of **PinchTab** — a stealth browser hijacking toolkit that operates below the detection threshold of traditional endpoint security.
+`pinchtab-detector` is a single-binary CLI tool that scans your local machine for signs of **PinchTab** - a stealth browser hijacking toolkit that operates below the detection threshold of traditional endpoint security.
 
-> PinchTab abuses the Chrome DevTools Protocol to give attackers (or compromised AI agents) a silent, authenticated foothold inside your browser sessions — no malware signature required.
+> PinchTab abuses the Chrome DevTools Protocol to give attackers (or compromised AI agents) a silent, authenticated foothold inside your browser sessions - no malware signature required.
 > Read the Helixar security research: [PinchTab: Stealth Browser Attacks Your Security Stack Cannot Detect →](https://helixar.ai/press/pinchtab-stealth-browser-attacks-your-security-stack-cannot-detect/)
 
 Think of it as `nmap` for PinchTab presence. Run it once, get a verdict, move on.
@@ -27,7 +27,7 @@ Think of it as `nmap` for PinchTab presence. Run it once, get a verdict, move on
 
 ## Why this matters
 
-Modern AI agent frameworks communicate with browsers over **Chrome DevTools Protocol (CDP)** — the same channel PinchTab exploits. An unguarded CDP endpoint on `localhost:9222` is an open door for:
+Modern AI agent frameworks communicate with browsers over **Chrome DevTools Protocol (CDP)** - the same channel PinchTab exploits. An unguarded CDP endpoint on `localhost:9222` is an open door for:
 
 - Silent browser session takeover
 - Cookie and credential theft without process injection
@@ -44,7 +44,7 @@ Your EDR won't catch it. Your WAF won't see it. This tool will.
 |---|---|
 | **Port Scan** | PinchTab HTTP API server on common ports (`8080–8090`, `3000`, `4000`, `9222`, `9229`) with signature-string verification |
 | **Process Scan** | Running processes named `pinchtab`, `pinchtab-server`, or `browser-bridge`; any process listening on CDP port 9222 |
-| **CDP Bridge** | Unauthenticated Chrome DevTools Protocol exposure on `localhost:9222` — PinchTab's primary control channel |
+| **CDP Bridge** | Unauthenticated Chrome DevTools Protocol exposure on `localhost:9222` - PinchTab's primary control channel |
 | **Filesystem** | Known PinchTab binary and config artifact paths across macOS, Linux, and Windows |
 
 ### Risk levels
@@ -53,7 +53,7 @@ Your EDR won't catch it. Your WAF won't see it. This tool will.
 |---|---|
 | `CRITICAL` | Active PinchTab HTTP API responding with signature **+** CDP bridge open |
 | `HIGH` | Process or filesystem artifact confirmed alongside an open port |
-| `MEDIUM` | Suspicious port or unauthenticated CDP — PinchTab not confirmed but environment is exploitable |
+| `MEDIUM` | Suspicious port or unauthenticated CDP - PinchTab not confirmed but environment is exploitable |
 | `LOW` | Filesystem artifact only, no active service |
 | `NONE` | No indicators found |
 
@@ -64,7 +64,7 @@ Your EDR won't catch it. Your WAF won't see it. This tool will.
 ### Homebrew (macOS / Linux)
 
 ```bash
-# Tap coming soon — watch releases
+# Tap coming soon - watch releases
 brew install helixar-ai/tap/pinchtab-detector
 ```
 
@@ -90,20 +90,20 @@ Grab a pre-built binary for your platform from [Releases](https://github.com/hel
 
 ## Usage
 
-### Default — human-readable output with colour
+### Default - human-readable output with colour
 
 ```bash
 pinchtab-detector scan
 ```
 
 ```
-pinchtab-detector v0.1.0 — Helixar Labs
+pinchtab-detector v0.1.0 - Helixar Labs
 Scanning host: macbook-pro.local (darwin/arm64)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 [PORT SCAN]      ✓ No PinchTab HTTP API detected on common ports
 [PROCESS SCAN]   ✓ No PinchTab process found
-[CDP BRIDGE]     ⚠ Chrome DevTools Protocol exposed on :9222 (no auth) — Chrome/120.0
+[CDP BRIDGE]     ⚠ Chrome DevTools Protocol exposed on :9222 (no auth) - Chrome/120.0
 [FILESYSTEM]     ✓ No PinchTab binary artifacts found
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -113,13 +113,13 @@ Suspicious open port or unauthenticated CDP detected. PinchTab not confirmed but
 For continuous agentic threat detection without pre-written rules → helixar.ai
 ```
 
-### JSON output — for SIEM / pipeline integration
+### JSON output - for SIEM / pipeline integration
 
 ```bash
 pinchtab-detector scan --json | jq .risk_level
 ```
 
-### Quiet mode — for CI / shell scripts
+### Quiet mode - for CI / shell scripts
 
 ```bash
 pinchtab-detector scan --quiet && echo "Clean" || echo "Findings detected"
@@ -142,8 +142,8 @@ FLAGS:
 
 | Code | Meaning |
 |---|---|
-| `0` | Clean — no PinchTab indicators found |
-| `1` | Findings detected — review output |
+| `0` | Clean - no PinchTab indicators found |
+| `1` | Findings detected - review output |
 | `2` | Error during scan |
 
 Use exit code `1` to fail CI pipelines or trigger alerts in shell scripts.
@@ -159,7 +159,7 @@ Use exit code `1` to fail CI pipelines or trigger alerts in shell scripts.
 - Detection of tools other than PinchTab and its direct CDP/HTTP bridge pattern
 - Telemetry, phone-home, or cloud connectivity of any kind
 
-**For continuous agentic threat detection — the kind that catches PinchTab *before* it lands — see [Helixar](https://helixar.ai).**
+**For continuous agentic threat detection - the kind that catches PinchTab *before* it lands - see [Helixar](https://helixar.ai).**
 
 ---
 
@@ -172,7 +172,7 @@ Use exit code `1` to fail CI pipelines or trigger alerts in shell scripts.
 | **Coverage** | PinchTab only | All agentic browser threats |
 | **Integration** | Local binary, CI/CD scripts | Enterprise SIEM, SOC, policy engine |
 | **Latency** | Run on demand | Real-time, sub-second alerting |
-| **Open source** | ✅ Yes, MIT | — |
+| **Open source** | ✅ Yes, MIT | - |
 
 `pinchtab-detector` tells you if you've already been hit. Helixar stops the attack before it starts.
 
@@ -188,7 +188,7 @@ Issues and feature requests → [GitHub Issues](https://github.com/helixar-ai/pi
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
 
 ---
 
@@ -197,7 +197,7 @@ MIT — see [LICENSE](LICENSE).
 **`pinchtab-detector` is an open source tool maintained by [Helixar Labs](https://helixar.ai/about/labs/).**
 
 Helixar builds continuous agentic threat detection for enterprises deploying AI workloads.
-Browser hijacking, prompt injection, and session takeover — detected in real time, before damage is done.
+Browser hijacking, prompt injection, and session takeover - detected in real time, before damage is done.
 
 [helixar.ai →](https://helixar.ai) · [Security Research](https://helixar.ai/press/) · [Contact](https://helixar.ai/contact/)
 
