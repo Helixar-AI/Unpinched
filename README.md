@@ -6,7 +6,7 @@
 
 [![Build](https://img.shields.io/github/actions/workflow/status/Helixar-AI/Unpinched/release.yml?label=build&style=flat-square)](https://github.com/Helixar-AI/Unpinched/actions)
 [![Go Version](https://img.shields.io/badge/go-1.22-00ADD8?style=flat-square&logo=go)](https://go.dev)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache_2.0-blue?style=flat-square)](LICENSE)
 [![By Helixar Labs](https://img.shields.io/badge/by-Helixar%20Labs-6C63FF?style=flat-square)](https://helixar.ai/about/labs/)
 [![Release](https://img.shields.io/github/v/release/Helixar-AI/Unpinched?style=flat-square)](https://github.com/Helixar-AI/Unpinched/releases)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Unpinched-blue?style=flat-square&logo=github)](https://github.com/marketplace/actions/unpinched-pinchtab-detector)
@@ -260,7 +260,7 @@ Use exit code `1` to fail CI pipelines or trigger alerts in shell scripts.
 | **Coverage** | PinchTab only | All agentic browser threats |
 | **Integration** | Local binary, CI/CD scripts | Enterprise SIEM, SOC, policy engine |
 | **Latency** | Run on demand | Real-time, sub-second alerting |
-| **Open source** | ✅ Yes, MIT | - |
+| **Open source** | ✅ Yes, Apache-2.0 | - |
 
 `pinchtab-detector` tells you if you've already been hit. Helixar stops the attack before it starts.
 
@@ -276,7 +276,7 @@ Issues and feature requests → [GitHub Issues](https://github.com/Helixar-AI/Un
 
 ## License
 
-MIT - see [LICENSE](LICENSE).
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 ---
 
